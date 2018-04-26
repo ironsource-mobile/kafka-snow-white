@@ -1,0 +1,1 @@
+A Kafka mirroring service based on `akka-stream-kafka`.
