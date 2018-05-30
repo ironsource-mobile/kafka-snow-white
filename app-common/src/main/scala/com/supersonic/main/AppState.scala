@@ -6,7 +6,8 @@ import fommil.sjs.FamilyFormats
 import shapeless.Typeable
 import spray.json._
 
-case class AppState[AppSettings](commitHash: String,
+case class AppState[AppSettings](appVersion: String,
+                                 commitHash: String,
                                  settings: AppSettings,
                                  mirrors: Either[String, List[(MirrorID, ExternalKafkaMirrorSettings)]])
 
@@ -22,6 +23,6 @@ object AppState extends DefaultJsonProtocol with FamilyFormats {
     def read(json: JsValue): Config = ConfigFactory.parseString(json.toString)
   }
 
-  def format[AppSettings: JsonFormat: Typeable]: RootJsonFormat[AppState[AppSettings]] =
+  def format[AppSettings: JsonFormat : Typeable]: RootJsonFormat[AppState[AppSettings]] =
     implicitly[RootJsonFormat[AppState[AppSettings]]]
 }

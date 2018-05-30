@@ -22,7 +22,8 @@ lazy val `app-common` = withIntegrationTests {
         version,
         scalaVersion,
         sbtVersion,
-        "gitCommit" -> git.gitHeadCommit.value.getOrElse("")),
+        "gitCommit" -> git.gitHeadCommit.value.getOrElse(""),
+        "gitDescribedVersion" -> git.gitDescribedVersion.value.getOrElse("")),
       buildInfoPackage := organization.value)
     .settings(resolvers += Resolver.jcenterRepo)
     .dependsOn(core % "compile -> compile; test -> test; it -> it")

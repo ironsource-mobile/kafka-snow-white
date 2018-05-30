@@ -114,7 +114,11 @@ trait KafkaMirrorAppTemplate {
         case Finished => Left(s"Finished running Kafka mirrors stream")
       }
 
-      AppState(BuildInfo.gitCommit, appSettings, currentMirrors)
+      AppState(
+        appVersion = BuildInfo.gitDescribedVersion,
+        commitHash = BuildInfo.gitCommit,
+        settings = appSettings,
+        mirrors = currentMirrors)
     }
 
     val route =
