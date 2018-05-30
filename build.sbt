@@ -29,25 +29,32 @@ lazy val `app-common` = withIntegrationTests {
     .dependsOn(core % "compile -> compile; test -> test; it -> it")
 }
 
-lazy val `consul-app` = withIntegrationTests {
-  project
-    .settings(baseSettings: _*)
-    .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
-    .settings(resolvers += Resolver.jcenterRepo)
-    .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
-}
+lazy val `kafka-snow-white-consul-app` =
+  withAssemblyArtifact {
+    withIntegrationTests {
+      (project in file("consul-app"))
+        .settings(baseSettings: _*)
+        .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
+        .settings(resolvers += Resolver.jcenterRepo)
+        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaMirrorApp"))
+        .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
+    }
+  }
 
-lazy val `file-watcher-app` = withIntegrationTests {
-  project
-    .settings(baseSettings: _*)
-    .settings(libraryDependencies ++= fileAppDependencies)
-    .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
-}
+lazy val `kafka-snow-white-file-watcher-app` =
+  withAssemblyArtifact {
+    withIntegrationTests {
+      (project in file("file-watcher-app"))
+        .settings(baseSettings: _*)
+        .settings(libraryDependencies ++= fileAppDependencies)
+        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaMirrorApp"))
+        .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
+    }
+  }
 
 def baseSettings = List(
   organization := "com.supersonic",
-  version := "0.1",
-  scalaVersion := "2.12.4",
+  scalaVersion := "2.12.6",
   scalacOptions ++= List(
     "-encoding", "UTF-8",
     "-deprecation",
@@ -64,35 +71,7 @@ def baseSettings = List(
   scalacOptions.in(Test, console) ~= filterConsoleScalacOptions,
   sources in (Compile, doc) := List.empty,
   mergeStrategy,
-  test in assembly := List(
-    (test in Test).value,
-    (test in IntegrationConfig).value),
-  addCompilerPlugin("io.tryp" % "splain" % "0.2.9" cross CrossVersion.patch))
-
-def filterConsoleScalacOptions = { options: Seq[String] =>
-  options.filterNot(Set("-Xlint", "-Xfatal-warnings"))
-}
-
-/** Same as [[IntegrationTest]] but with an additional dependency on [[Test]], so that they can
-  * share code.
-  */
-val IntegrationConfig = IntegrationTest.extend(Test)
-
-def withIntegrationTests(project: Project) = {
-
-  val testWithIntegration =
-    test in Test := (test in IntegrationConfig).dependsOn(test in Test).value
-
-  val integrationTestSettings =
-    inConfig(IntegrationConfig)(testSettings) ++
-      Seq(
-        testWithIntegration,
-        parallelExecution in IntegrationConfig := false)
-
-  project
-    .settings(integrationTestSettings)
-    .configs(IntegrationConfig.extend(Test))
-}
+  addCompilerPlugin("io.tryp" % "splain" % "0.3.1" cross CrossVersion.patch))
 
 val akkaVersion = "2.5.7"
 val akkaHTTPVersion = "10.0.11"
@@ -136,9 +115,46 @@ def loggingDependencies = List( //TODO where should these be used?
   "ch.qos.logback" % "logback-classic" % "1.2.3",
   "me.moocar" % "logback-gelf" % "0.12")
 
+def filterConsoleScalacOptions = { options: Seq[String] =>
+  options.filterNot(Set("-Xlint", "-Xfatal-warnings"))
+}
+
+/** Same as [[IntegrationTest]] but with an additional dependency on [[Test]], so that they can
+  * share code.
+  */
+val IntegrationConfig = IntegrationTest.extend(Test)
+
+/** Configures a project to support integration tests using the [[IntegrationTest]] configuration. */
+def withIntegrationTests(project: Project) = {
+
+  val testWithIntegration =
+    test in Test := (test in IntegrationConfig).dependsOn(test in Test).value
+
+  val integrationTestSettings =
+    inConfig(IntegrationConfig)(testSettings) ++
+      Seq(
+        testWithIntegration,
+        parallelExecution in IntegrationConfig := false)
+
+  project
+    .settings(integrationTestSettings)
+    .configs(IntegrationConfig.extend(Test))
+}
+
+/** Configures a project to publish its assembly JAR as part of the published artifacts. */
+def withAssemblyArtifact(project: Project) =
+  project
+    .settings {
+      artifact in (Compile, assembly) ~= { art =>
+        art.withClassifier(Some("assembly"))
+
+      }
+    }
+    .settings(addArtifact(artifact in (Compile, assembly), assembly).settings: _*)
+
+
 def mergeStrategy =
   assemblyMergeStrategy in assembly := {
-    //    case PathList("logback-test.xml") => MergeStrategy.last //TODO needed?
     case PathList("org", "apache", "commons", "collections", _*) => MergeStrategy.last
     case x =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
