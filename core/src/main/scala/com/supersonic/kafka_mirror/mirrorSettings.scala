@@ -32,7 +32,7 @@ case class MirrorSettings(whitelist: Set[String],
 
 /**
   * Defines settings for mirroring buckets.
-  * The (mirrorBuckets / totalBuckets) ratio is the percentage of traffic to be mirrored
+  * The (mirrorBuckets / totalBuckets) ratio is the percentage of traffic to be mirrored.
   *
   * @param mirrorBuckets The number of buckets that should be mirrored.
   * @param totalBuckets  The total number of buckets, used to calculate the percentage of traffic
