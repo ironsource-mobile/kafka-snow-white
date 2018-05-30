@@ -52,6 +52,17 @@ lazy val `kafka-snow-white-file-watcher-app` =
     }
   }
 
+inThisBuild(List(
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  homepage := Some(url("https://github.com/SupersonicAds/kafka-snow-white")),
+  developers := List(Developer("SupersonicAds", "SupersonicAds", "SupersonicAds", url("https://github.com/SupersonicAds"))),
+  scmInfo := Some(ScmInfo(url("https://github.com/SupersonicAds/kafka-snow-white"), "scm:git:git@github.com:SupersonicAds/kafka-snow-white.git")),
+
+  pgpPublicRing := file("./travis/local.pubring.asc"),
+  pgpSecretRing := file("./travis/local.secring.asc"),
+  releaseEarlyEnableSyncToMaven := false,
+  releaseEarlyWith := BintrayPublisher))
+
 def baseSettings = List(
   organization := "com.supersonic",
   scalaVersion := "2.12.6",
@@ -151,6 +162,7 @@ def withAssemblyArtifact(project: Project) =
       }
     }
     .settings(addArtifact(artifact in (Compile, assembly), assembly).settings: _*)
+    .settings(test in assembly := {})
 
 
 def mergeStrategy =
