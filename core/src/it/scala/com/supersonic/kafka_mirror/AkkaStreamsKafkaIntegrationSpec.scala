@@ -1,5 +1,6 @@
 package com.supersonic.kafka_mirror
 
+import java.net.ServerSocket
 import java.util.UUID
 import akka.NotUsed
 import akka.kafka.ProducerMessage.Message
@@ -29,22 +30,24 @@ trait AkkaStreamsKafkaIntegrationSpec extends TestKitBase
   implicit val ec = system.dispatcher
   implicit val materializer = ActorMaterializer()(system)
 
-  private var kafkaConnections: List[(ServerCnxnFactory, KafkaServer)] = List.empty
+  case class KafkaConnection(kafka: KafkaServer,
+                             zookeeper: ServerCnxnFactory,
+                             config: EmbeddedKafkaConfig)
 
-  // TODO make configurable in inheriting classes
-  val embeddedKafkaConfig1 = EmbeddedKafkaConfig(kafkaPort = 6001, zooKeeperPort = 6000)
-  val embeddedKafkaConfig2 = EmbeddedKafkaConfig(kafkaPort = 6003, zooKeeperPort = 6002)
+  private var kafkaConnection1: KafkaConnection = _
+  private var kafkaConnection2: KafkaConnection = _
 
-  val kafkaHelper1 = new KafkaHelper(embeddedKafkaConfig1)
-  val kafkaHelper2 = new KafkaHelper(embeddedKafkaConfig2)
+  def kafkaHelper1 = new KafkaHelper(kafkaConnection1.config)
+
+  def kafkaHelper2 = new KafkaHelper(kafkaConnection2.config)
 
   def uuid() = UUID.randomUUID().toString
 
   def createTopicOnServers(number: Int) = {
     val topic = s"topic$number-" + uuid()
 
-    EmbeddedKafka.createCustomTopic(topic)(embeddedKafkaConfig1)
-    EmbeddedKafka.createCustomTopic(topic)(embeddedKafkaConfig2)
+    EmbeddedKafka.createCustomTopic(topic)(kafkaConnection1.config)
+    EmbeddedKafka.createCustomTopic(topic)(kafkaConnection2.config)
 
     topic
   }
@@ -103,20 +106,37 @@ trait AkkaStreamsKafkaIntegrationSpec extends TestKitBase
   }
 
   private def startKafka() = {
-    kafkaConnections = List(embeddedKafkaConfig1, embeddedKafkaConfig2).map { conf =>
+    def connectToKafka() = {
+
       val zkLogsDir = Directory.makeTemp("zookeeper-logs")
       val kafkaLogsDir = Directory.makeTemp("kafka-logs")
 
-      (EmbeddedKafka.startZooKeeper(conf.zooKeeperPort, zkLogsDir),
-        EmbeddedKafka.startKafka(conf, kafkaLogsDir))
+      val zookeeper = EmbeddedKafka.startZooKeeper(0, zkLogsDir)
+
+      val config = EmbeddedKafkaConfig(kafkaPort = getFreePort(), zooKeeperPort = zookeeper.getLocalPort)
+      val kafka = EmbeddedKafka.startKafka(config, kafkaLogsDir)
+
+      KafkaConnection(kafka, zookeeper, config)
     }
+
+    kafkaConnection1 = connectToKafka()
+    kafkaConnection2 = connectToKafka()
   }
 
   private def shutdownKafka() =
-    kafkaConnections.foreach { case (zookeeper, broker) =>
-      broker.shutdown()
-      zookeeper.shutdown()
+    List(kafkaConnection1, kafkaConnection2).foreach { connection =>
+      connection.kafka.shutdown()
+      connection.zookeeper.shutdown()
     }
+
+  private def getFreePort() = {
+    var socket: ServerSocket = null
+    try {
+      socket = new ServerSocket(0)
+      socket.setReuseAddress(true)
+      socket.getLocalPort
+    } finally socket.close()
+  }
 
   class KafkaHelper(embeddedKafkaConfig: EmbeddedKafkaConfig) {
     val bootstrapServers = s"localhost:${embeddedKafkaConfig.kafkaPort}"
