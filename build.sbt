@@ -7,12 +7,14 @@ name := "kafka-snow-white"
 
 lazy val core = withIntegrationTests {
   project
+    .settings(name := "kafka-snow-white-core")
     .settings(baseSettings: _*)
     .settings(libraryDependencies ++= (coreDependencies ++ coreTestDependencies))
 }
 
 lazy val `app-common` = withIntegrationTests {
   project
+    .settings(name := "kafka-snow-white-app-common")
     .settings(baseSettings: _*)
     .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
     .enablePlugins(BuildInfoPlugin)
@@ -29,10 +31,11 @@ lazy val `app-common` = withIntegrationTests {
     .dependsOn(core % "compile -> compile; test -> test; it -> it")
 }
 
-lazy val `kafka-snow-white-consul-app` =
+lazy val `consul-app` =
   withAssemblyArtifact {
     withIntegrationTests {
-      (project in file("consul-app"))
+      project
+        .settings(name := "kafka-snow-white-consul-app")
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
         .settings(resolvers += Resolver.jcenterRepo)
@@ -41,10 +44,11 @@ lazy val `kafka-snow-white-consul-app` =
     }
   }
 
-lazy val `kafka-snow-white-file-watcher-app` =
+lazy val `file-watcher-app` =
   withAssemblyArtifact {
     withIntegrationTests {
-      (project in file("file-watcher-app"))
+      project
+        .settings(name := "kafka-snow-white-file-watcher-app")
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= fileAppDependencies)
         .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaMirrorApp"))
