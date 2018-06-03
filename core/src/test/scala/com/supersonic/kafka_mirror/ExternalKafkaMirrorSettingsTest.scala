@@ -27,5 +27,9 @@ class ExternalKafkaMirrorSettingsTest extends WordSpec with Matchers {
     "produce positive numbers" in {
       hashFunction(Array(1, 2).map(_.toByte)) should be >= 0
     }
+
+    "not fail if the input is 'null'" in {
+      noException should be thrownBy hashFunction(null)
+    }
   }
 }

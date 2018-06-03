@@ -60,9 +60,14 @@ case class ExternalKafkaMirrorSettings(kafka: ExternalKafkaSettings, mirror: Mir
     val consumerSettings = ConsumerSettings(kafka.consumer, new ByteArrayDeserializer, new ByteArrayDeserializer)
     val producerSettings = ProducerSettings(kafka.producer, new ByteArraySerializer, new ByteArraySerializer)
 
+    def hashKey(k: Array[Byte]) = {
+
+      Utils.abs(Utils.murmur2(if (k == null) Array.empty else k))
+    }
+
     KafkaMirrorSettings(
       KafkaSettings(consumerSettings, producerSettings),
       mirror,
-      k => Utils.abs(Utils.murmur2(k: Array[Byte])))
+      hashKey)
   }
 }
