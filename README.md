@@ -8,7 +8,7 @@ A Kafka mirroring service based on Akka Streams Kafka. The service can be used t
 
 ## Getting Kafka Snow White
 
-Kafka Snow White is available as executable JAR files in multiple variation (see below), these can be downloaded from Bintray:
+Kafka Snow White is available as executable JAR files in multiple variations (see below), these can be downloaded from Bintray:
 - [kafka-snow-white-file-watcher-app](https://bintray.com/ironsonic/maven/kafka-snow-white-file-watcher-app)
 - [kafka-snow-white-consul-app](https://bintray.com/ironsonic/maven/kafka-snow-white-consul-app)
 
