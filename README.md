@@ -4,7 +4,7 @@
 
 > Mirror, mirror on the wall, who is the fairest of them all?
 
-A Kafka mirroring service based on `akka-stream-kafka`. The service can be used to move messages between topics on different Kafka servers.
+A Kafka mirroring service based on Akka Streams Kafka. The service can be used to move messages between topics on different Kafka servers.
 
 ## Getting Kafka Snow White
 
