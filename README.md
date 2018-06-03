@@ -4,7 +4,7 @@
 
 > Mirror, mirror on the wall, who is the fairest of them all?
 
-A Kafka mirroring service based on Akka Streams Kafka. The service can be used to move messages between topics on different Kafka servers.
+A Kafka mirroring service based on Akka Streams Kafka. The service can be used to move messages between topics on different Kafka clusters.
 
 ## Getting Kafka Snow White
 
@@ -30,8 +30,8 @@ libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.0.
 ```
 
 ## Motivation
-Given two different Kafka servers (`server1` and `server2`) we want to move messages from the topic `some-topic` on `server1` to `some-topic` on `server2`.
-The Kafka Snow White service lets one define a mirror, that does exactly this (see setup details below). Given the appropriate mirror, if we start the Kafka Snow White service with it, it will connect to `server1` consume all messages from `some-topic` and then produce the messages to `some-topic` on `server2`.
+Given two different Kafka clusters (`cluster1` and `cluster2`) we want to move messages from the topic `some-topic` on `cluster1` to `some-topic` on `cluster2`.
+The Kafka Snow White service lets one define a mirror, that does exactly this (see setup details below). Given the appropriate mirror, if we start the Kafka Snow White service with it, it will connect to `cluster1` consume all messages from `some-topic` and then produce the messages to `some-topic` on `cluster2`.
 
 ## Setup
 
@@ -45,7 +45,7 @@ The configuration schema (using the [HOCON format](https://github.com/lightbend/
 ```
 consumer {
   kafka-clients {
-    bootstrap.servers = "server1:9092"
+    bootstrap.servers = "cluster1:9092"
     group.id = "some-group"
     auto.offset.reset = "earliest"
   }
@@ -53,7 +53,7 @@ consumer {
 
 producer {
   kafka-clients = {
-    bootstrap.servers = "server2:9092"
+    bootstrap.servers = "cluster2:9092"
   }
 }
 
@@ -65,8 +65,8 @@ mirror {
 ```
 
 A mirror specification has three sections:
-- `consumer` - setting up the consumer that will be used by the mirror (this corresponds to the source server)
-- `producer` - setting up the producer that will be used by the mirror (this corresponds to the target server)
+- `consumer` - setting up the consumer that will be used by the mirror (this corresponds to the source cluster)
+- `producer` - setting up the producer that will be used by the mirror (this corresponds to the target cluster)
 - `mirror` - settings for the mirror itself
 
 Since the mirror is backed by the Akka Streams Kafka library, the `consumer` and `producer` settings are passed directly to it. The full specification of the available settings can be found in the Akka Streams Kafka documentation for the [consumer](https://doc.akka.io/docs/akka-stream-kafka/current/consumer.html#settings) and the [producer](https://doc.akka.io/docs/akka-stream-kafka/current/producer.html#settings).
@@ -76,7 +76,7 @@ The mirror settings are defined as follows:
 mirror {
   # The list of topics the mirror listens to (mandatory). 
   # Unless overridden in  the `topicsToRename` field each topic in this list 
-  # will be mirrored in the target server.
+  # will be mirrored in the target cluster.
   whitelist = ['some-topic-1', 'some-topic-2']
   
   # How many messages to batch before committing their offsets to Kafka (optional, default 1000).
@@ -100,7 +100,7 @@ mirror {
   enabled = true
   
   # Map of source to target topics to rename when mirroring messages to the 
-  # target server (optional, default empty).
+  # target cluster (optional, default empty).
   topicsToRename {
     some-topic-2 = "renamed-topic"
   }
@@ -108,7 +108,7 @@ mirror {
 ```
 
 ### Topic Renaming
-By default the topic `whitelist` defines topics that should be mirrored from the source server in the target server. This means that each topic in the list will be recreated with the same name in the target server. It is possible to override this behavior by providing the `topicsToRename` map. In the example above, the `whitelist` contains two topics (`some-topic-1` and `some-topic-2`) and the `topicsToRename` map contains a single entry that maps `some-topic-2` to `renamed-topic`. When the mirror will be run, the contents of `some-topic-2` in the source server will be mirrored in the target server in a new topic called `renamed-topic`. While the `some-topic-1` topic will be mirrored in the target server under the same name (since it does not have an entry in the map).
+By default the topic `whitelist` defines topics that should be mirrored from the source cluster in the target cluster. This means that each topic in the list will be recreated with the same name in the target cluster. It is possible to override this behavior by providing the `topicsToRename` map. In the example above, the `whitelist` contains two topics (`some-topic-1` and `some-topic-2`) and the `topicsToRename` map contains a single entry that maps `some-topic-2` to `renamed-topic`. When the mirror will be run, the contents of `some-topic-2` in the source cluster will be mirrored in the target cluster in a new topic called `renamed-topic`. While the `some-topic-1` topic will be mirrored in the target cluster under the same name (since it does not have an entry in the map).
 
 ### Bucketing
 
