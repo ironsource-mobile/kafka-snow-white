@@ -1,12 +1,33 @@
 # Kafka Snow White
 
+[![Build Status](https://travis-ci.org/SupersonicAds/kafka-snow-white.svg?branch=master)](https://travis-ci.org/SupersonicAds/kafka-snow-white) [![Download](https://api.bintray.com/packages/ironsonic/maven/kafka-snow-white/images/download.svg) ](https://bintray.com/ironsonic/maven/kafka-snow-white/_latestVersion)
+
 > Mirror, mirror on the wall, who is the fairest of them all?
 
 A Kafka mirroring service based on `akka-stream-kafka`. The service can be used to move messages between topics on different Kafka servers.
 
 ## Getting Kafka Snow White
 
-TODO
+Kafka Snow White is available as executable JAR files in multiple variation (see below), these can be downloaded from Bintray:
+- [kafka-snow-white-file-watcher-app](https://bintray.com/ironsonic/maven/kafka-snow-white-file-watcher-app)
+- [kafka-snow-white-consul-app](https://bintray.com/ironsonic/maven/kafka-snow-white-consul-app)
+
+Pick the `xxx-assembly.jar` files where `xxx` stands for the app name and version.
+
+The code is also available as a library and can be used via SBT with:
+```scala
+resolvers += Resolver.jcenterRepo
+
+// If you want to run the service from code
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.0.0"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.0.0"
+
+// If you want only the basic mirroring functionality with no backing mechanism
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.0.0"
+
+// If you want to create a new backend for mirroring
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.0.0" 
+```
 
 ## Motivation
 Given two different Kafka servers (`server1` and `server2`) we want to move messages from the topic `some-topic` on `server1` to `some-topic` on `server1`.
@@ -58,10 +79,10 @@ mirror {
   # will be mirrored in the target server.
   whitelist = ['some-topic-1', 'some-topic-2']
   
-  # How many messages to batch before committing their offsets to Kafka (mandatory, no default).
+  # How many messages to batch before committing their offsets to Kafka (optional, default 1000).
   commitBatchSize = 1000
   
-  # The parallelism level used to commit the offsets.
+  # The parallelism level used to commit the offsets (optional, default 4).
   commitParallelism = 4
   
   # Settings to enable bucketing of mirrored values (optional).

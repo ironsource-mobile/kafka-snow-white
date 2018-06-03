@@ -24,8 +24,8 @@ case class KafkaSettings[K, V](consumer: ConsumerSettings[K, V],
   *
   */
 case class MirrorSettings(whitelist: Set[String],
-                          commitBatchSize: Int,
-                          commitParallelism: Int,
+                          commitBatchSize: Int = 1000,
+                          commitParallelism: Int = 4,
                           bucketing: Option[BucketSettings] = None,
                           enabled: Boolean = true,
                           topicsToRename: Map[String, String] = Map.empty)
