@@ -57,8 +57,15 @@ object KafkaMirror {
     */
   private[kafka_mirror] def makeMessage[K, V](mirror: MirrorSettings, hashKey: K => Int)
                                              (message: CommittableMessage[K, V]): Option[Message[K, V, CommittableOffset]] = {
-    def shouldSend(bucketSettings: BucketSettings): Boolean =
-      hashKey(message.record.key) % bucketSettings.totalBuckets < bucketSettings.mirrorBuckets
+    def shouldSend(bucketSettings: BucketSettings): Boolean = {
+      val key = message.record.key
+
+      // 'null' keys are always mirrored, since bucketing is used for (deterministic) mirroring by key
+      // there is no point to mirror 'null' as it will always land in the same bucket.
+      // So we consider 'null' to be an indication that the user doesn't need mirroring
+      key == null ||
+        (hashKey(key) % bucketSettings.totalBuckets < bucketSettings.mirrorBuckets)
+    }
 
     val send = mirror.bucketing.forall(shouldSend)
     if (send) {

@@ -107,6 +107,19 @@ class KafkaMirrorTest extends WordSpecLike
       forEvery(messages(3, 4, 8, 9, 13, 14))(verifyNoMessage)
     }
 
+    "not use bucketing if the message key is null" in {
+      def hashKey(str: String) = bucketing.totalBuckets - 1 // we want to always not-mirrored
+
+      val settingsWithBucketing = mirrorSettings(bucketSettings = Some(bucketing))(List("some-topic"): _*) // avoiding varargs due to a bug in the compiler
+      val settingsNoBucketing = mirrorSettings()("some-topic")
+
+      val makeMessageWithBucketing = KafkaMirror.makeMessage[String, String](settingsWithBucketing, hashKey) _
+      val makeMessageWithNoBucketing = KafkaMirror.makeMessage[String, String](settingsNoBucketing, hashKey) _
+
+      val message = makeConsumerMessage(null)
+      makeMessageWithBucketing(message) shouldBe makeMessageWithNoBucketing(message)
+    }
+
     "handle a missing timestamp in the incoming message" in {
       val settings = mirrorSettings()("some-topic")
 

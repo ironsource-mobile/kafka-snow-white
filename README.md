@@ -114,9 +114,11 @@ By default the topic `whitelist` defines topics that should be mirrored from the
 
 It is possible to (probabilistically) mirror only some percentage of the messages in a topic, to do this we need to specify the `bucketing` settings. As in the example above, we set `mirrorBuckets` to `4` and `totalBuckets` to `16`, this means that only `4 / 16 = 25%` of the messages will be mirrored by the mirror.
 
-The selection of which messages to mirror is based on the key of the incoming message, meaning that if a key was once mirrored it will always be mirrored when the same key is encountered again. This can be useful when mirroring traffic between production and staging/testing environments (assuming that the key is not `null` and has some logical info in it). 
+The selection of which messages to mirror is based on the key of the incoming message, meaning that if a key was once mirrored it will always be mirrored when the same key is encountered again. This can be useful when mirroring traffic between production and staging/testing environments (assuming that the key is not `null` and has some logical info in it).
 
-Note: this implies that if the keys are all the same (e.g., `null`) then all messages will be either mirrored or not depending on the key's value.
+Note: this implies that if the keys are all the same then all messages will be either mirrored or not depending on the key's value.
+
+Bucketing is not supported for `null` keys, all such messages will be mirrored independent of the bucketing settings.
 
 ## The Healthcheck Server
 
