@@ -141,3 +141,13 @@ kafka-mirror-settings {
   port = 8081
 }
 ```
+
+## Compared to Other Solutions
+
+There are other mirroring solutions out there, notably Apache Kafka's own [MirrorMaker](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=27846330) and Uber's [uReplicator](https://github.com/uber/uReplicator).
+
+Compared to MirrorMaker, Kafka Snow White should be easier to manage:
+- The configuration can be reloaded dynamically via files or Consul
+- Each mirror is defined independently with no need to restart or affect other mirrors when a given mirror is changed
+
+uReplicator is a more featureful solution but also requires a more complicated setup (e.g., a [Helix controller](http://helix.apache.org/)). Compared to it Kafka Snow White can be deployed as a single self-contained JAR file.
