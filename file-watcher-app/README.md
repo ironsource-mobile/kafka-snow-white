@@ -10,7 +10,7 @@ java -jar file-watcher-app.jar
 
 (where we assume that the app JAR was renamed to `file-watcher-app.jar`)
 
-This will start service and will look for mirror definitions in the `/some/dir/with/mirrors` directory.
+This will start the service and will look for mirror definitions in the `/some/dir/with/mirrors` directory.
 
 Alternatively, we can start the application with a configuration file instead of using environment variables, like so:
 ```

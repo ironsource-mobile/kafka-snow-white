@@ -1,6 +1,6 @@
 # The Consul App
 
-The Kafka Snow White consul app lets you configure the Kafka mirrors via keys in the Consul KV-store. 
+The Kafka Snow White consul app lets you configure the Kafka mirrors via keys in the [Consul](https://www.consul.io/) KV-store. 
 
 The app is provided as an executable JAR (see how to obtain it in the [main README](../README.md)) and can be started with the following command:
 ```
@@ -12,7 +12,7 @@ java -jar consul-app.jar
 
 (where we assume that the app JAR was renamed to `consul-app.jar`)
 
-This will start service and will look for mirror definitions in the `some/consul/key` key in the Consul instance that resides in `http://localhost:8500`.
+This will start the service and will look for mirror definitions in the `some/consul/key` key in the Consul instance that resides in `http://localhost:8500`.
 
 Alternatively, we can start the application with a configuration file instead of using environment variables, like so:
 ```
