@@ -1,6 +1,7 @@
 package com.supersonic.main
 
 import akka.event.LoggingAdapter
+import akka.http.scaladsl.server.Route
 import com.orbitz.consul.Consul
 import com.supersonic.consul.{CancellationToken, ConsulSettingsFlow, ConsulStream}
 import com.supersonic.kafka_mirror._
@@ -12,7 +13,11 @@ import scala.concurrent.ExecutionContext
 /** Launches an application that listens to Consul for Kafka mirror definitions and manages them.
   * The application provides a healthcheck route for its current state.
   */
-object KafkaMirrorApp extends KafkaMirrorAppTemplate {
+object KafkaMirrorApp extends KafkaConsulMirrorApp {
+  protected def customRoute(currentState: () => AppState[AppSettings]): Option[Route] = None
+}
+
+trait KafkaConsulMirrorApp extends KafkaMirrorAppTemplate {
   protected type MirrorConfigSourceMat = CancellationToken
 
   protected type AppSettings = ConsulAppSettings

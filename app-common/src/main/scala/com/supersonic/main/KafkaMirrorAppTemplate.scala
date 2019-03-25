@@ -5,6 +5,7 @@ import akka.event.{Logging, LoggingAdapter}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.stream.FlowMonitorState.{Failed, Finished, Initialized, Received}
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.{ActorMaterializer, FlowMonitor, Materializer}
@@ -42,8 +43,16 @@ trait KafkaMirrorAppTemplate {
   /** Needed for the derivation of the AppState JSON format */
   protected implicit def appSettingsTypeable: Typeable[AppSettings]
 
+  /** Will be used to render the current state in an HTTP-route. */
+  protected implicit val appStateFormat = AppState.format[AppSettings]
+
   /** A callback to be invoked when the application completes. */
   protected def onCompletion(matValue: MirrorConfigSourceMat): Unit
+
+  /** An optional custom route to be served by the application instead of [[defaultRoute]].
+    * The given callback give access to the current state of the application.
+    */
+  protected def customRoute(currentState: () => AppState[AppSettings]): Option[Route]
 
   /** The type of sources that provide mirror configuration for this app. */
   protected type MirrorConfigSource = Source[Map[MirrorID, Option[String]], MirrorConfigSourceMat]
@@ -104,9 +113,7 @@ trait KafkaMirrorAppTemplate {
                         actorSystem: ActorSystem,
                         materializer: Materializer,
                         executionContext: ExecutionContext): Http.ServerBinding = {
-    implicit val appStateFormat = AppState.format[AppSettings]
-
-    def currentState() = { //TODO add mirrors that are present in the config but not properly configured
+    val currentState = () => { //TODO add mirrors that are present in the config but not properly configured
       val currentMirrors = monitor.state match {
         case Received(mirrors) => Right(mirrors.mapValues(_.mirrorSettings).toList)
         case Initialized => Left("Initialized Kafka mirrors stream")
@@ -121,12 +128,7 @@ trait KafkaMirrorAppTemplate {
         mirrors = currentMirrors)
     }
 
-    val route =
-      path("healthcheck") {
-        get {
-          complete(currentState())
-        }
-      }
+    val route = customRoute(currentState).getOrElse(defaultRoute(currentState))
 
     val eventualServerBinding = Http().bindAndHandle(route, "0.0.0.0", appSettings.port)
 
@@ -135,6 +137,13 @@ trait KafkaMirrorAppTemplate {
 
     serverBinding
   }
+
+  private def defaultRoute(currentState: () => AppState[AppSettings]): Route =
+    path("healthcheck") {
+      get {
+        complete(currentState())
+      }
+    }
 }
 
 object KafkaMirrorAppTemplate {

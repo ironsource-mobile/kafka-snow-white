@@ -2,6 +2,7 @@ package com.supersonic.main
 
 import akka.NotUsed
 import akka.event.LoggingAdapter
+import akka.http.scaladsl.server.Route
 import com.supersonic.file_watch.{ConfigFileSettingsProcessing, DirectoryFilesSource}
 import net.ceedubs.ficus.readers.ValueReader
 import shapeless.Typeable
@@ -12,7 +13,11 @@ import scala.concurrent.duration._
 /** Launches an application that listens to a directory for Kafka mirror definitions and manages them.
   * The application provides a healthcheck route for its current state.
   */
-object KafkaMirrorApp extends KafkaMirrorAppTemplate {
+object KafkaMirrorApp extends KafkaFileWatcherMirrorApp {
+  protected def customRoute(currentState: () => AppState[AppSettings]): Option[Route] = None
+}
+
+trait KafkaFileWatcherMirrorApp extends KafkaMirrorAppTemplate {
   protected type MirrorConfigSourceMat = NotUsed
 
   protected type AppSettings = DirectoryAppSettings
