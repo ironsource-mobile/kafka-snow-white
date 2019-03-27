@@ -16,7 +16,7 @@ lazy val `app-common` = withIntegrationTests {
   project
     .settings(name := "kafka-snow-white-app-common")
     .settings(baseSettings: _*)
-    .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
+    .settings(libraryDependencies ++= appCommonDependencies)
     .enablePlugins(BuildInfoPlugin)
     .settings(
       buildInfoKeys := List[BuildInfoKey](
@@ -27,7 +27,6 @@ lazy val `app-common` = withIntegrationTests {
         "gitCommit" -> git.gitHeadCommit.value.getOrElse(""),
         "gitDescribedVersion" -> git.gitDescribedVersion.value.getOrElse("")),
       buildInfoPackage := organization.value)
-    .settings(resolvers += Resolver.jcenterRepo)
     .dependsOn(core % "compile -> compile; test -> test; it -> it")
 }
 
@@ -82,16 +81,18 @@ def baseSettings = List(
     "-Xlint",
     "-Ypartial-unification",
     "-P:splain:color:false"),
+  //TODO remove the 'ironsonic' resolver once 'consul-akka-stream-integration-tests' is on JCenter
+  resolvers ++= List(Resolver.jcenterRepo, Resolver.bintrayRepo("ironsonic", "maven")),
   scalacOptions.in(Compile, console) ~= filterConsoleScalacOptions,
   scalacOptions.in(Test, console) ~= filterConsoleScalacOptions,
   sources in (Compile, doc) := List.empty,
   mergeStrategy,
+  // a workaround for https://github.com/sbt/sbt/issues/1380
+  makePomConfiguration := makePomConfiguration.value.withConfigurations(Configurations.defaultMavenConfigurations),
   addCompilerPlugin("io.tryp" % "splain" % "0.3.1" cross CrossVersion.patch))
 
 val akkaVersion = "2.5.7"
 val akkaHTTPVersion = "10.0.11"
-
-def consulAkkaStream = "com.supersonic" %% "consul-akka-stream" % "1.0.3"
 
 def coreDependencies = List(
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
@@ -99,17 +100,20 @@ def coreDependencies = List(
   "com.iheart" %% "ficus" % "1.4.3",
   "org.typelevel" %% "cats-core" % "1.0.1") ++ loggingDependencies
 
-def consulAppDependencies = List(
-  "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  "com.typesafe.akka" %% "akka-stream-kafka" % "0.18",
-  consulAkkaStream,
-  "org.typelevel" %% "cats-core" % "1.0.1",
+def appCommonDependencies = List(
   "com.typesafe.akka" %% "akka-http" % akkaHTTPVersion,
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHTTPVersion,
   "com.github.fommil" %% "spray-json-shapeless" % "1.4.0")
 
+val consulAkkaStreamVersion = "1.1.0"
+
+def consulAppDependencies = List(
+  "com.supersonic" %% "consul-akka-stream" % consulAkkaStreamVersion)
+
 def fileAppDependencies =
-  List("com.lightbend.akka" %% "akka-stream-alpakka-file" % "0.18")
+  List(
+    "com.lightbend.akka" %% "akka-stream-alpakka-file" % "0.18",
+    "com.google.guava" % "guava" % "19.0")
 
 def coreTestDependencies = List(
   "org.scalatest" %% "scalatest" % "3.0.4" % "it, test",
@@ -122,7 +126,8 @@ def coreTestDependencies = List(
   // bridges logging with the embedded Kafka instance
   "org.slf4j" % "log4j-over-slf4j" % "1.7.25" % "it")
 
-def consulAppTestDependencies = List(consulAkkaStream % "it" classifier "it")
+def consulAppTestDependencies = List(
+  "com.supersonic" %% "consul-akka-stream-integration-tests" % consulAkkaStreamVersion % "it")
 
 def loggingDependencies = List( //TODO where should these be used?
   // the order of the logging libraries matters, since they're loaded by classpath magic
