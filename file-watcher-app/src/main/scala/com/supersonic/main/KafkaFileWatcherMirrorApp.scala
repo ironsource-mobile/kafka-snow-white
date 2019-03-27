@@ -13,11 +13,11 @@ import scala.concurrent.duration._
 /** Launches an application that listens to a directory for Kafka mirror definitions and manages them.
   * The application provides a healthcheck route for its current state.
   */
-object KafkaMirrorApp extends KafkaFileWatcherMirrorApp {
+object KafkaFileWatcherMirrorApp extends FileWatcherMirrorApp {
   protected def customRoute(currentState: () => AppState[AppSettings]): Option[Route] = None
 }
 
-trait KafkaFileWatcherMirrorApp extends KafkaMirrorAppTemplate {
+trait FileWatcherMirrorApp extends KafkaMirrorAppTemplate {
   protected type MirrorConfigSourceMat = NotUsed
 
   protected type AppSettings = DirectoryAppSettings

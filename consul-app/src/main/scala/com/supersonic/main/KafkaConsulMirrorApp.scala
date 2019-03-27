@@ -13,11 +13,11 @@ import scala.concurrent.ExecutionContext
 /** Launches an application that listens to Consul for Kafka mirror definitions and manages them.
   * The application provides a healthcheck route for its current state.
   */
-object KafkaMirrorApp extends KafkaConsulMirrorApp {
+object KafkaConsulMirrorApp extends ConsulMirrorApp {
   protected def customRoute(currentState: () => AppState[AppSettings]): Option[Route] = None
 }
 
-trait KafkaConsulMirrorApp extends KafkaMirrorAppTemplate {
+trait ConsulMirrorApp extends KafkaMirrorAppTemplate {
   protected type MirrorConfigSourceMat = CancellationToken
 
   protected type AppSettings = ConsulAppSettings

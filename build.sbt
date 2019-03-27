@@ -38,7 +38,7 @@ lazy val `consul-app` =
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
         .settings(resolvers += Resolver.jcenterRepo)
-        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaMirrorApp"))
+        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaConsulMirrorApp"))
         .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
     }
   }
@@ -50,7 +50,7 @@ lazy val `file-watcher-app` =
         .settings(name := "kafka-snow-white-file-watcher-app")
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= fileAppDependencies)
-        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaMirrorApp"))
+        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaFileWatcherMirrorApp"))
         .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
     }
   }
