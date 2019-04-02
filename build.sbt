@@ -37,7 +37,6 @@ lazy val `consul-app` =
         .settings(name := "kafka-snow-white-consul-app")
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
-        .settings(resolvers += Resolver.jcenterRepo)
         .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaConsulMirrorApp"))
         .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
     }
@@ -81,8 +80,7 @@ def baseSettings = List(
     "-Xlint",
     "-Ypartial-unification",
     "-P:splain:color:false"),
-  //TODO remove the 'ironsonic' resolver once 'consul-akka-stream-integration-tests' is on JCenter
-  resolvers ++= List(Resolver.jcenterRepo, Resolver.bintrayRepo("ironsonic", "maven")),
+  resolvers += Resolver.jcenterRepo,
   scalacOptions.in(Compile, console) ~= filterConsoleScalacOptions,
   scalacOptions.in(Test, console) ~= filterConsoleScalacOptions,
   sources in (Compile, doc) := List.empty,
