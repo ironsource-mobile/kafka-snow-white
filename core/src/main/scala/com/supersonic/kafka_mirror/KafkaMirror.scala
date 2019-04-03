@@ -40,8 +40,8 @@ object KafkaMirror {
       settings.kafka.consumer,
       Subscriptions.topics(settings.mirror.whitelist))
       .mapConcat(makeMessage[K, V](settings.mirror, settings.hashKey) _ andThen (_.toList))
-      .via(Producer.flow(settings.kafka.producer))
-      .map(_.message.passThrough)
+      .via(Producer.flexiFlow(settings.kafka.producer))
+      .map(_.passThrough)
       .batch(
         max = settings.mirror.commitBatchSize,
         CommittableOffsetBatch.empty.updated)(_ updated _)

@@ -63,7 +63,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
         .expectNext(10.seconds)
 
       pullingProbe.cancel()
-      Await.result(control.isShutdown, remainingOrDefault)
+      Await.result(control.isShutdown, 1.minute)
 
       // continuing consumption within the same group,
       // should skip messages from the first batch since it was already committed

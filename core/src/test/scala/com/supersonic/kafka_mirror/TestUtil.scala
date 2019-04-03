@@ -9,6 +9,7 @@ import akka.stream.scaladsl.{Flow, Keep, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.stream.testkit.{TestPublisher, TestSubscriber}
 import com.typesafe.config.ConfigFactory
+import org.apache.kafka.common.{Metric, MetricName}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 object TestUtil {
@@ -78,14 +79,16 @@ object TestUtil {
 
     def isShutdownNow(): Boolean = shutDownState.isCompleted
 
-    def shutdown() = Future {
+    override def shutdown() = Future {
       shutdownNow()
       Done
     }
 
-    def stop() = shutdown()
+    override def stop() = shutdown()
 
-    val isShutdown = shutDownState.future
+    override val isShutdown = shutDownState.future
+
+    override def metrics: Future[Map[MetricName, Metric]] = Future.successful(Map.empty)
   }
 
   object FailingControl extends Control {
@@ -94,5 +97,7 @@ object TestUtil {
     override def stop() = shutdown()
 
     override def isShutdown = stop()
+
+    override def metrics: Future[Map[MetricName, Metric]] = Future.successful(Map.empty)
   }
 }

@@ -85,7 +85,7 @@ trait KafkaMirrorAppTemplate {
         .merge(Source.tick(stateVerificationInterval, stateVerificationInterval, VerifyState))
         .mergeMat(Source.maybe[MirrorCommand.Shutdown.type])(Keep.both)
         .via(mirrorManager.flow)
-        .monitor()((mat, monitor) => (mat, monitor))
+        .monitor
 
       val (((mirrorConfigSourceMat, shutdownHandle), monitor), endOfWorld) = flow.toMat(Sink.ignore)(Keep.both).run()
 

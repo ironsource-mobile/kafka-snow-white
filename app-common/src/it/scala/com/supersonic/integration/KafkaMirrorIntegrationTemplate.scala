@@ -82,7 +82,7 @@ trait KafkaMirrorIntegrationTemplate extends AkkaStreamsKafkaIntegrationSpec
 
           info("stopping bar")
           deleteMirror("bar")
-          waitForID("bar", present = false)
+          waitForID("bar", checkPresent = false)
 
           info("verifying that 'bar' is no longer active")
           verifyNoMirroring(topic1, group2)
@@ -147,15 +147,18 @@ trait KafkaMirrorIntegrationTemplate extends AkkaStreamsKafkaIntegrationSpec
   case class Waiter(mirrorsProbe: Probe[Map[MirrorID, RunningMirror]]) {
     @volatile var state: Map[MirrorID, RunningMirror] = Map.empty
 
-    def apply(id: String, present: Boolean = true) = {
+    def apply(id: String, checkPresent: Boolean = true) = {
       var attempts = 50
 
-      def check() =
-        if (present) state.contains(MirrorID(id))
-        else !state.contains(MirrorID(id))
+      def check() = {
+        val mirrorPresent = state.contains(MirrorID(id))
+
+        if (checkPresent) mirrorPresent
+        else !mirrorPresent
+      }
 
       while (!check() && attempts > 0) {
-        state = mirrorsProbe.requestNext(10.seconds)
+        state = mirrorsProbe.requestNext(1.minute)
         attempts -= 1
       }
 
