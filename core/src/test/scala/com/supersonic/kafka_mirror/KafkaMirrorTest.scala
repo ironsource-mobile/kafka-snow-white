@@ -36,6 +36,8 @@ class KafkaMirrorTest extends WordSpecLike
       def commitJavadsl() = ???
 
       def commitScaladsl() = ???
+
+      def batchSize: Long = ???
     }
 
     def makeConsumerMessage(key: String) = {

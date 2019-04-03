@@ -67,7 +67,7 @@ inThisBuild(List(
 
 def baseSettings = List(
   organization := "com.supersonic",
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.8",
   scalacOptions ++= List(
     "-encoding", "UTF-8",
     "-deprecation",
@@ -87,16 +87,16 @@ def baseSettings = List(
   mergeStrategy,
   // a workaround for https://github.com/sbt/sbt/issues/1380
   makePomConfiguration := makePomConfiguration.value.withConfigurations(Configurations.defaultMavenConfigurations),
-  addCompilerPlugin("io.tryp" % "splain" % "0.3.1" cross CrossVersion.patch))
+  addCompilerPlugin("io.tryp" % "splain" % "0.4.0" cross CrossVersion.patch))
 
-val akkaVersion = "2.5.7"
-val akkaHTTPVersion = "10.0.11"
+val akkaVersion = "2.5.21"
+val akkaHTTPVersion = "10.1.8"
 
 def coreDependencies = List(
   "com.typesafe.akka" %% "akka-stream" % akkaVersion,
-  "com.typesafe.akka" %% "akka-stream-kafka" % "0.18",
-  "com.iheart" %% "ficus" % "1.4.3",
-  "org.typelevel" %% "cats-core" % "1.0.1") ++ loggingDependencies
+  "com.typesafe.akka" %% "akka-stream-kafka" % "1.0.1",
+  "com.iheart" %% "ficus" % "1.4.5",
+  "org.typelevel" %% "cats-core" % "1.6.0") ++ loggingDependencies
 
 def appCommonDependencies = List(
   "com.typesafe.akka" %% "akka-http" % akkaHTTPVersion,
@@ -110,16 +110,16 @@ def consulAppDependencies = List(
 
 def fileAppDependencies =
   List(
-    "com.lightbend.akka" %% "akka-stream-alpakka-file" % "0.18",
+    "com.lightbend.akka" %% "akka-stream-alpakka-file" % "0.20",
     "com.google.guava" % "guava" % "19.0")
 
 def coreTestDependencies = List(
-  "org.scalatest" %% "scalatest" % "3.0.4" % "it, test",
-  "com.ironcorelabs" %% "cats-scalatest" % "2.3.1" % "it, test",
+  "org.scalatest" %% "scalatest" % "3.0.5" % "it, test",
+  "com.ironcorelabs" %% "cats-scalatest" % "2.4.0" % "it, test",
   "com.softwaremill.quicklens" %% "quicklens" % "1.4.11" % "test",
   "com.typesafe.akka" %% "akka-testkit" % akkaVersion % "it, test",
   "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion % "it, test",
-  "net.manub" %% "scalatest-embedded-kafka" % "0.16.0" % "it",
+  "io.github.embeddedkafka" %% "embedded-kafka" % "2.2.0" % "it",
   // should probably be last, due to classpath magic, I think, maybe...
   // bridges logging with the embedded Kafka instance
   "org.slf4j" % "log4j-over-slf4j" % "1.7.25" % "it")

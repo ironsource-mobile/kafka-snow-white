@@ -156,7 +156,7 @@ trait AkkaStreamsKafkaIntegrationSpec extends TestKitBase
 
           Message(record, NotUsed)
         })
-        .viaMat(Producer.flow(producerSettings))(Keep.right)
+        .viaMat(Producer.flexiFlow(producerSettings))(Keep.right)
 
       source.runWith(Sink.ignore)
     }
@@ -166,8 +166,6 @@ trait AkkaStreamsKafkaIntegrationSpec extends TestKitBase
         .withBootstrapServers(bootstrapServers)
         .withGroupId(group)
         .withProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        .withWakeupTimeout(10.seconds)
-        .withMaxWakeups(10)
     }
   }
 }
