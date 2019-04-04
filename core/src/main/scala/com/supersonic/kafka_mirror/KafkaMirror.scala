@@ -7,8 +7,9 @@ import akka.kafka.ProducerMessage.Message
 import akka.kafka.scaladsl.Consumer.Control
 import akka.kafka.scaladsl.{Consumer, Producer}
 import akka.kafka.{ProducerMessage, Subscriptions}
-import akka.stream.Materializer
+import akka.stream.{ActorAttributes, Materializer, Supervision}
 import akka.stream.scaladsl.{Keep, Sink, Source}
+import org.apache.kafka.clients.consumer.CommitFailedException
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.record.RecordBatch
 
@@ -29,6 +30,14 @@ trait MirrorMaker {
 }
 
 object KafkaMirror {
+  /** A workaround for https://github.com/akka/alpakka-kafka/issues/755
+    * Can be removed once Alpakka Kafka 1.0.2 is released.
+    */
+  private val recoverCommitErrors: Supervision.Decider = {
+    case _: CommitFailedException => Supervision.Resume
+    case _ => Supervision.Stop
+  }
+
   /** Creates a mirror that streams data from the source topic to the target topic as
     * specified in the settings object.
     */
@@ -47,6 +56,7 @@ object KafkaMirror {
         CommittableOffsetBatch.empty.updated)(_ updated _)
       // TODO or should it be producerSettings.parallelism?
       .mapAsync(settings.mirror.commitParallelism)(_.commitScaladsl())
+      .withAttributes(ActorAttributes.supervisionStrategy(recoverCommitErrors))
       .named(mirrorName) // to help debugging
       .log(mirrorName)
   }
