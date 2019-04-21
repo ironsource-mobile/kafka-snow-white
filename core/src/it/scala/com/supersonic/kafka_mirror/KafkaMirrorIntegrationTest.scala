@@ -23,7 +23,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
     val group2 = createGroup(2)
 
     def makeMirror(whitelist: String*) =
-      kafkaMirror(MirrorID("test"), mirrorSettings(group1)(whitelist: _*)).source
+      kafkaMirror(MirrorID("test"), mirrorSettings(group1)(whitelist: _*))
 
     val messages1 = 1 to 100
     val messages2 = 101 to 200
@@ -37,7 +37,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
 
       val mirror = makeMirror(topic1, topic2)
 
-      val pullingProbe = mirror.runWith(TestSink.probe)
+      val pullingProbe = mirror.source.runWith(TestSink.probe)
 
       pullingProbe
         .request(messages1.size + messages2.size) // should request all messages, even if batching is set to 1
@@ -47,6 +47,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
       verifyTopic(topic2, group2, messages2)
 
       pullingProbe.cancel()
+      mirror.producer.close()
     }
 
     "commit messages in the source topic upon mirroring" in {
@@ -56,7 +57,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
 
       val mirror = makeMirror(topic)
 
-      val (control, pullingProbe) = mirror.toMat(TestSink.probe)(Keep.both).run()
+      val (control, pullingProbe) = mirror.source.toMat(TestSink.probe)(Keep.both).run()
 
       pullingProbe // requesting the first batch
         .request(1)
@@ -73,6 +74,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
       element.toInt should be > messages1.head
 
       sourceTopicProbe.cancel()
+      mirror.producer.close()
     }
 
     "support message bucketing" in {
@@ -85,9 +87,9 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
 
       produceMessages(topic, messages1)
 
-      val mirror = kafkaMirror(MirrorID("test"), mirrorSettings(group1, Some(bucketing))(topic)).source
+      val mirror = kafkaMirror(MirrorID("test"), mirrorSettings(group1, Some(bucketing))(topic))
 
-      val pullingProbe = mirror.runWith(TestSink.probe)
+      val pullingProbe = mirror.source.runWith(TestSink.probe)
 
       pullingProbe
         .request(messages1.size) // should request all messages, even if batching is set to 1
@@ -98,6 +100,7 @@ class KafkaMirrorIntegrationTest extends TestKit(ActorSystem("KafkaMirrorIntegra
       verifyTopic(topic, group1, mirroredMessages)
 
       pullingProbe.cancel()
+      mirror.producer.close()
     }
   }
 }

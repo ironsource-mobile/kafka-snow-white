@@ -16,6 +16,12 @@ class KafkaMirrorTest extends WordSpecLike
 
   val hashKey = (_: String).toInt
 
+  val partitionNum = 5
+
+  val getNumberOfPartitions = (_: String) => partitionNum
+
+  val generatePartition = (n: Int) => n
+
   def mirrorSettings(topicsToRename: Map[String, String] = Map.empty,
                      bucketSettings: Option[BucketSettings] = None)
                     (whitelist: String*) =
@@ -56,7 +62,7 @@ class KafkaMirrorTest extends WordSpecLike
       val settings = mirrorSettings()(topic)
       val consumerMessage = makeConsumerMessage("the-key")
 
-      val maybeMessage = KafkaMirror.makeMessage(settings, hashKey)(consumerMessage)
+      val maybeMessage = KafkaMirror.makeMessage(settings, hashKey, getNumberOfPartitions, generatePartition)(consumerMessage)
 
       maybeMessage should not be empty
 
@@ -64,7 +70,7 @@ class KafkaMirrorTest extends WordSpecLike
 
       message.passThrough shouldBe consumerMessage.committableOffset
       message.record.topic shouldBe consumerMessage.record.topic
-      message.record.partition shouldBe null
+      message.record.partition shouldBe partitionNum
       message.record.timestamp shouldBe consumerMessage.record.timestamp
       message.record.key shouldBe consumerMessage.record.key
       message.record.value shouldBe consumerMessage.record.value
@@ -75,7 +81,7 @@ class KafkaMirrorTest extends WordSpecLike
       val consumerMessage = makeConsumerMessage("the-key")
       val renamedConsumerMessage = makeRenamedConsumerMessage("the-key")
 
-      val maybeMessage = KafkaMirror.makeMessage(settings, hashKey)(consumerMessage)
+      val maybeMessage = KafkaMirror.makeMessage(settings, hashKey, getNumberOfPartitions, generatePartition)(consumerMessage)
 
       maybeMessage should not be empty
 
@@ -83,7 +89,7 @@ class KafkaMirrorTest extends WordSpecLike
 
       message.passThrough shouldBe renamedConsumerMessage.committableOffset
       message.record.topic shouldBe renamedConsumerMessage.record.topic
-      message.record.partition shouldBe null
+      message.record.partition shouldBe partitionNum
       message.record.timestamp shouldBe renamedConsumerMessage.record.timestamp
       message.record.key shouldBe renamedConsumerMessage.record.key
       message.record.value shouldBe renamedConsumerMessage.record.value
@@ -93,8 +99,8 @@ class KafkaMirrorTest extends WordSpecLike
       val settingsWithBucketing = mirrorSettings(bucketSettings = Some(bucketing))(List("some-topic"): _*) // avoiding varargs due to a bug in the compiler
       val settingsNoBucketing = mirrorSettings()("some-topic")
 
-      val makeMessageWithBucketing = KafkaMirror.makeMessage[String, String](settingsWithBucketing, hashKey) _
-      val makeMessageWithNoBucketing = KafkaMirror.makeMessage[String, String](settingsNoBucketing, hashKey) _
+      val makeMessageWithBucketing = KafkaMirror.makeMessage[String, String](settingsWithBucketing, hashKey, getNumberOfPartitions, generatePartition) _
+      val makeMessageWithNoBucketing = KafkaMirror.makeMessage[String, String](settingsNoBucketing, hashKey, getNumberOfPartitions, generatePartition) _
 
       def verifyNoMessage(message: CommittableMessage[String, String]) =
         makeMessageWithBucketing(message) shouldBe empty
@@ -115,8 +121,10 @@ class KafkaMirrorTest extends WordSpecLike
       val settingsWithBucketing = mirrorSettings(bucketSettings = Some(bucketing))(List("some-topic"): _*) // avoiding varargs due to a bug in the compiler
       val settingsNoBucketing = mirrorSettings()("some-topic")
 
-      val makeMessageWithBucketing = KafkaMirror.makeMessage[String, String](settingsWithBucketing, hashKey) _
-      val makeMessageWithNoBucketing = KafkaMirror.makeMessage[String, String](settingsNoBucketing, hashKey) _
+      val makeMessageWithBucketing =
+        KafkaMirror.makeMessage[String, String](settingsWithBucketing, hashKey, getNumberOfPartitions, generatePartition) _
+      val makeMessageWithNoBucketing =
+        KafkaMirror.makeMessage[String, String](settingsNoBucketing, hashKey, getNumberOfPartitions, generatePartition) _
 
       val message = makeConsumerMessage(null)
       makeMessageWithBucketing(message) shouldBe makeMessageWithNoBucketing(message)
@@ -130,7 +138,7 @@ class KafkaMirrorTest extends WordSpecLike
 
       val consumerMessage = CommittableMessage(record, offset)
 
-      val maybeMessage = KafkaMirror.makeMessage(settings, hashKey)(consumerMessage)
+      val maybeMessage = KafkaMirror.makeMessage(settings, hashKey, getNumberOfPartitions, generatePartition)(consumerMessage)
 
       maybeMessage should not be empty
 

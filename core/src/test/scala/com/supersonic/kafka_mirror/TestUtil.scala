@@ -9,6 +9,7 @@ import akka.stream.scaladsl.{Flow, Keep, Source}
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import akka.stream.testkit.{TestPublisher, TestSubscriber}
 import com.typesafe.config.ConfigFactory
+import org.apache.kafka.clients.producer.Producer
 import org.apache.kafka.common.{Metric, MetricName}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
@@ -50,7 +51,8 @@ object TestUtil {
   class MockMirrorMaker(create: => KafkaMirror) extends MirrorMaker {
     type Mirror = KafkaMirror
 
-    def apply(mirrorID: MirrorID)(source: (LoggingAdapter) => Source[Done, Control]) = create
+    def apply(mirrorID: MirrorID, producer: Producer[_, _])
+             (source: LoggingAdapter => Source[Done, Control]) = create
   }
 
   class MockKafkaMirror(implicit executionContext: ExecutionContext) extends KafkaMirror {
