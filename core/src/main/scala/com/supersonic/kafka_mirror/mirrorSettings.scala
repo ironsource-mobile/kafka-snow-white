@@ -1,5 +1,6 @@
 package com.supersonic.kafka_mirror
 
+import java.util.concurrent.ThreadLocalRandom
 import akka.kafka.{ConsumerSettings, ProducerSettings}
 import com.typesafe.config.Config
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
@@ -44,10 +45,14 @@ case class BucketSettings(mirrorBuckets: Int, totalBuckets: Int) {
 
 /** Note that equality doesn't work on this class since the [[KafkaSettings]] doesn't have
   * a good equality method.
+  *
+  * @param generatePartition Takes the total number of partitions and generates a random partition
+  *                          number (will be random in actual usage).
   */
 case class KafkaMirrorSettings[K, V](kafka: KafkaSettings[K, V],
                                      mirror: MirrorSettings,
-                                     hashKey: K => Int)
+                                     hashKey: K => Int,
+                                     generatePartition: Int => Int)
 
 /** Copying the [[KafkaMirrorSettings]] hierarchy, but instead of using the dedicated consumer/producer
   * settings objects using [[Config]]s, this enables logical equality on these classes (since
@@ -60,14 +65,16 @@ case class ExternalKafkaMirrorSettings(kafka: ExternalKafkaSettings, mirror: Mir
     val consumerSettings = ConsumerSettings(kafka.consumer, new ByteArrayDeserializer, new ByteArrayDeserializer)
     val producerSettings = ProducerSettings(kafka.producer, new ByteArraySerializer, new ByteArraySerializer)
 
-    def hashKey(k: Array[Byte]) = {
-
+    def hashKey(k: Array[Byte]) =
       Utils.abs(Utils.murmur2(if (k == null) Array.empty else k))
-    }
+
+    def generatePartition(totalPartitions: Int) =
+      ThreadLocalRandom.current().nextInt(totalPartitions)
 
     KafkaMirrorSettings(
       KafkaSettings(consumerSettings, producerSettings),
       mirror,
-      hashKey)
+      hashKey,
+      generatePartition)
   }
 }

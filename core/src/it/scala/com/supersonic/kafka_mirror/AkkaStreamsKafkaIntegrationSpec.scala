@@ -76,7 +76,9 @@ trait AkkaStreamsKafkaIntegrationSpec extends TestKitBase
         commitBatchSize = 20,
         commitParallelism = 3,
         bucketSettings),
-      (_: String).toInt)
+      (_: String).toInt,
+      // since partition numbers start from '0', we must subtract here
+      (n: Int) => n - 1)
 
   def verifyTopic(topic: String, group: String, messages: immutable.Seq[Int]) = {
     val targetTopicProbe = createProbe(kafkaHelper2.createConsumerSettings(group), topic)
