@@ -50,7 +50,7 @@ object KafkaMirror {
   def apply[K, V](makeMirror: MirrorMaker)
                  (id: MirrorID,
                   settings: KafkaMirrorSettings[K, V]): makeMirror.Mirror = {
-    // This producer will not be mananged by the library, so we have to close it upon stream
+    // This producer will not be managed by the library, so we have to close it upon stream
     // completion, that's why we pass it to [[makeMirror]].
     val producer = settings.kafka.producer.createKafkaProducer()
 
@@ -87,15 +87,28 @@ object KafkaMirror {
                                               getNumOfPartitions: String => Int,
                                               generatePartition: Int => Int)
                                              (message: CommittableMessage[K, V]): Option[Message[K, V, CommittableOffset]] = {
-    val key = message.record.key
+    // can be null, leaving it here, since we need to pass it along to Kafka later on
+    val rawKey = message.record.key
+    val maybeKey = Option(rawKey)
 
-    def shouldSend(bucketSettings: BucketSettings): Boolean = {
+    def shouldSend(bucketSettings: BucketSettings): Boolean =
+    // 'null' keys are always mirrored, since bucketing is used for (deterministic) mirroring by key
+    // there is no point to mirror 'null' as it will always land in the same bucket.
+    // So we consider 'null' to be an indication that the user doesn't need bucketing
+      maybeKey
+        .forall(key => hashKey(key) % bucketSettings.totalBuckets < bucketSettings.mirrorBuckets)
 
-      // 'null' keys are always mirrored, since bucketing is used for (deterministic) mirroring by key
-      // there is no point to mirror 'null' as it will always land in the same bucket.
-      // So we consider 'null' to be an indication that the user doesn't need bucketing
-      key == null ||
-        (hashKey(key) % bucketSettings.totalBuckets < bucketSettings.mirrorBuckets)
+    def getPartitionNumber(topic: String) = {
+      val totalPartitions = getNumOfPartitions(topic)
+
+      def partitionFromKey(key: K) = hashKey(key) % totalPartitions
+
+      def randomPartition = generatePartition(totalPartitions)
+
+      maybeKey
+        .filter(_ => mirror.partitionFromKeys)
+        .map(partitionFromKey)
+        .getOrElse(randomPartition)
     }
 
     val send = mirror.bucketing.forall(shouldSend)
@@ -105,14 +118,14 @@ object KafkaMirror {
 
       val topic = mirror.topicsToRename.getOrElse(message.record.topic, message.record.topic)
 
-      val partition = generatePartition(getNumOfPartitions(topic))
+      val partition = getPartitionNumber(topic)
 
       Some {
         ProducerMessage.Message(new ProducerRecord[K, V](
           topic,
           partition,
           timestamp,
-          key,
+          rawKey,
           message.record.value),
           message.committableOffset)
       }

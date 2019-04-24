@@ -22,6 +22,7 @@ class MirrorManager(mirrorMaker: MirrorMaker)
 
   val flow: Flow[MirrorCommand, Map[MirrorID, RunningMirror], NotUsed] = {
     val init = Map.empty[MirrorID, RunningMirror]
+
     Flow[MirrorCommand].scanAsync(init)(executeMirrors(mirrorMaker, killSwitch))
       .via(killSwitch.flow)
   }
