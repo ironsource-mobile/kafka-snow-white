@@ -21,6 +21,8 @@ case class KafkaSettings[K, V](consumer: ConsumerSettings[K, V],
   * @param commitParallelism The parallelism level used to commit the offsets.
   * @param bucketing         Settings to enable bucketing of mirrored values.
   * @param enabled           Whether the mirror should be enabled or not.
+  * @param partitionFromKeys Whether the partition number when mirroring should be computed from the
+  *                          key or not.
   * @param topicsToRename    Map of src to dest topic to rename when mirroring the message to the producer.
   *
   */
@@ -29,6 +31,7 @@ case class MirrorSettings(whitelist: Set[String],
                           commitParallelism: Int = 4,
                           bucketing: Option[BucketSettings] = None,
                           enabled: Boolean = true,
+                          partitionFromKeys: Boolean = false,
                           topicsToRename: Map[String, String] = Map.empty)
 
 /**
