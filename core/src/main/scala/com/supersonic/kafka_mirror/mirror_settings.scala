@@ -56,7 +56,7 @@ case class KafkaMirrorSettings[K, V](kafka: KafkaSettings[K, V],
 
 /** Copying the [[KafkaMirrorSettings]] hierarchy, but instead of using the dedicated consumer/producer
   * settings objects using [[Config]]s, this enables logical equality on these classes (since
-  * the dedicated classes are not defining custom a equality method).
+  * the dedicated classes are not defining a custom equality method).
   */
 case class ExternalKafkaSettings(consumer: Config, producer: Config)
 case class ExternalKafkaMirrorSettings(kafka: ExternalKafkaSettings, mirror: MirrorSettings) {
