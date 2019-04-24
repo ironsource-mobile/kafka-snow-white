@@ -52,7 +52,13 @@ object TestUtil {
     type Mirror = KafkaMirror
 
     def apply(mirrorID: MirrorID, producer: Producer[_, _])
-             (source: LoggingAdapter => Source[Done, Control]) = create
+             (source: LoggingAdapter => Source[Done, Control]) = {
+      // since we don't want it to actually run in the test and it will
+      // not be shutdown otherwise (since we are using a mock mirror)
+      producer.close()
+
+      create
+    }
   }
 
   class MockKafkaMirror(implicit executionContext: ExecutionContext) extends KafkaMirror {
