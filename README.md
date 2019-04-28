@@ -19,14 +19,14 @@ The code is also available as a library and can be used via SBT with:
 resolvers += Resolver.jcenterRepo
 
 // If you want to run the service from code
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.4.0"
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.4.0"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.5.0"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.5.0"
 
 // If you want only the basic mirroring functionality with no backing mechanism
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.4.0"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.5.0"
 
 // If you want to create a new backend for mirroring
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.4.0" 
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.5.0" 
 ```
 
 ## Motivation
