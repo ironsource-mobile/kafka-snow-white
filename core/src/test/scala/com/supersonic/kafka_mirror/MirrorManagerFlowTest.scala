@@ -17,10 +17,12 @@ class MirrorManagerFlowTest extends TestKit(ActorSystem("MirrorManagerFlowTest")
   implicit val logger = Logging(system.eventStream, "SettingsProcessingFlowTest")
 
   val mirrorMaker = new MockMirrorMaker(new MockKafkaMirror)
-  val flow = new MirrorManager(mirrorMaker).flow
 
-  def probes() =
+  def probes() = {
+    val flow = new MirrorManager(mirrorMaker).flow
+
     TestUtil.probes(flow)
+  }
 
   "The mirror manager flow" should {
     "start and stop mirrors" in {
@@ -107,9 +109,7 @@ class MirrorManagerFlowTest extends TestKit(ActorSystem("MirrorManagerFlowTest")
         _ <- c1.isShutdown
         _ <- c2.isShutdown
         _ <- c3.isShutdown
-      } yield {
-        succeed
-      }
+      } yield succeed
     }
   }
 }

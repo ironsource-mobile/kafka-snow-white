@@ -23,9 +23,11 @@ class SettingsProcessingFlowTest extends TestKit(ActorSystem("SettingsProcessing
   """)
   val root = "foo"
 
-  val flow = SettingsProcessingFlow(fallback)
+  def probes() = {
+    val flow = SettingsProcessingFlow(fallback)
 
-  def probes() = TestUtil.probes(flow)
+    TestUtil.probes(flow)
+  }
 
   def settings(i: Int) = Some {
     s"""
