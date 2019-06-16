@@ -8,7 +8,7 @@ import akka.kafka.scaladsl.Consumer.Control
 import akka.kafka.scaladsl.{Consumer, Producer}
 import akka.kafka.{ProducerMessage, Subscriptions}
 import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.{ActorAttributes, Materializer, Supervision}
+import akka.stream.{ActorAttributes, Materializer, OverflowStrategy, Supervision}
 import org.apache.kafka.clients.consumer.CommitFailedException
 import org.apache.kafka.clients.producer.{ProducerRecord, Producer => KafkaProducer}
 import org.apache.kafka.common.record.RecordBatch
@@ -65,6 +65,9 @@ object KafkaMirror {
           settings.hashKey,
           producer.partitionsFor(_).size,
           settings.generatePartition) _ andThen (_.toList))
+        // as per the recommendation here:
+        // https://blog.colinbreck.com/maximizing-throughput-for-akka-streams/
+        .buffer(settings.mirror.kafkaSourceBuffer, OverflowStrategy.backpressure)
         .via(Producer.flexiFlow(settings.kafka.producer, producer))
         .map(_.passThrough)
         .batch(

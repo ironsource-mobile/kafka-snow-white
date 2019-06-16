@@ -24,6 +24,8 @@ case class KafkaSettings[K, V](consumer: ConsumerSettings[K, V],
   * @param partitionFromKeys Whether the partition number when mirroring should be computed from the
   *                          key or not.
   * @param topicsToRename    Map of src to dest topic to rename when mirroring the message to the producer.
+  * @param kafkaSourceBuffer The size of the buffer to be used after the Kafka source, can help throughput
+  *                          as per https://blog.colinbreck.com/maximizing-throughput-for-akka-streams/
   *
   */
 case class MirrorSettings(whitelist: Set[String],
@@ -32,7 +34,8 @@ case class MirrorSettings(whitelist: Set[String],
                           bucketing: Option[BucketSettings] = None,
                           enabled: Boolean = true,
                           partitionFromKeys: Boolean = false,
-                          topicsToRename: Map[String, String] = Map.empty)
+                          topicsToRename: Map[String, String] = Map.empty,
+                          kafkaSourceBuffer: Int = 10000)
 
 /**
   * Defines settings for mirroring buckets.
