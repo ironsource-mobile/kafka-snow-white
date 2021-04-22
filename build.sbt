@@ -37,7 +37,7 @@ lazy val `consul-app` =
         .settings(name := "kafka-snow-white-consul-app")
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= (consulAppDependencies ++ consulAppTestDependencies))
-        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaConsulMirrorApp"))
+        .settings(Compile / run / mainClass := Some("com.supersonic.main.KafkaConsulMirrorApp"))
         .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
     }
   }
@@ -49,24 +49,30 @@ lazy val `file-watcher-app` =
         .settings(name := "kafka-snow-white-file-watcher-app")
         .settings(baseSettings: _*)
         .settings(libraryDependencies ++= fileAppDependencies)
-        .settings(mainClass in (Compile, run) := Some("com.supersonic.main.KafkaFileWatcherMirrorApp"))
+        .settings(Compile / run / mainClass := Some("com.supersonic.main.KafkaFileWatcherMirrorApp"))
         .dependsOn(`app-common` % "compile -> compile; test -> test; it -> it")
     }
   }
 
+sonatypeCredentialHost := Sonatype.sonatype01
 inThisBuild(List(
-  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+  organization := "com.supersonic",
   homepage := Some(url("https://github.com/SupersonicAds/kafka-snow-white")),
+  licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
   developers := List(Developer("SupersonicAds", "SupersonicAds", "SupersonicAds", url("https://github.com/SupersonicAds"))),
-  scmInfo := Some(ScmInfo(url("https://github.com/SupersonicAds/kafka-snow-white"), "scm:git:git@github.com:SupersonicAds/kafka-snow-white.git")),
 
-  pgpPublicRing := file("./travis/local.pubring.asc"),
-  pgpSecretRing := file("./travis/local.secring.asc"),
-  releaseEarlyEnableSyncToMaven := false,
-  releaseEarlyWith := BintrayPublisher))
+  githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v"))),
+  githubWorkflowTargetTags ++= Seq("v*"),
+  githubWorkflowPublish := Seq(
+    WorkflowStep.Sbt(
+      List("ci-release"),
+      env = Map(
+        "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
+        "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
+        "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
+        "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}")))))
 
 def baseSettings = List(
-  organization := "com.supersonic",
   scalaVersion := "2.12.8",
   scalacOptions ++= List(
     "-encoding", "UTF-8",
@@ -80,14 +86,15 @@ def baseSettings = List(
     "-Xlint",
     "-Ypartial-unification",
     "-P:splain:color:false"),
+  sonatypeCredentialHost := Sonatype.sonatype01,
   resolvers += Resolver.jcenterRepo,
-  scalacOptions.in(Compile, console) ~= filterConsoleScalacOptions,
-  scalacOptions.in(Test, console) ~= filterConsoleScalacOptions,
-  sources in (Compile, doc) := List.empty,
+  Compile / console / scalacOptions ~= filterConsoleScalacOptions,
+  Test / console / scalacOptions ~= filterConsoleScalacOptions,
+  Compile / doc / sources := List.empty,
   mergeStrategy,
   // a workaround for https://github.com/sbt/sbt/issues/1380
   makePomConfiguration := makePomConfiguration.value.withConfigurations(Configurations.defaultMavenConfigurations),
-  addCompilerPlugin("io.tryp" % "splain" % "0.4.0" cross CrossVersion.patch))
+  addCompilerPlugin("io.tryp" % "splain" % "0.5.8" cross CrossVersion.patch))
 
 val akkaVersion = "2.5.21"
 val akkaHTTPVersion = "10.1.8"
@@ -146,13 +153,13 @@ val IntegrationConfig = IntegrationTest.extend(Test)
 def withIntegrationTests(project: Project) = {
 
   val testWithIntegration =
-    test in Test := (test in IntegrationConfig).dependsOn(test in Test).value
+    Test / test  := (IntegrationConfig / test).dependsOn(Test / test).value
 
   val integrationTestSettings =
     inConfig(IntegrationConfig)(testSettings) ++
       Seq(
         testWithIntegration,
-        parallelExecution in IntegrationConfig := false)
+        IntegrationConfig / parallelExecution := false)
 
   project
     .settings(integrationTestSettings)
@@ -163,19 +170,19 @@ def withIntegrationTests(project: Project) = {
 def withAssemblyArtifact(project: Project) =
   project
     .settings {
-      artifact in (Compile, assembly) ~= { art =>
+      Compile / assembly / artifact ~= { art =>
         art.withClassifier(Some("assembly"))
 
       }
     }
-    .settings(addArtifact(artifact in (Compile, assembly), assembly).settings: _*)
-    .settings(test in assembly := {})
+    .settings(addArtifact(Compile / assembly / artifact, assembly).settings: _*)
+    .settings(assembly / test := {})
 
 
 def mergeStrategy =
-  assemblyMergeStrategy in assembly := {
+  assembly / assemblyMergeStrategy := {
     case PathList("org", "apache", "commons", "collections", _*) => MergeStrategy.last
     case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(x)
   }
