@@ -1,6 +1,7 @@
 # Kafka Snow White
 
-[![Build Status](https://travis-ci.org/SupersonicAds/kafka-snow-white.svg?branch=master)](https://travis-ci.org/SupersonicAds/kafka-snow-white) [![Download](https://api.bintray.com/packages/ironsonic/maven/kafka-snow-white/images/download.svg) ](https://bintray.com/ironsonic/maven/kafka-snow-white/_latestVersion)
+[![Build Status](https://github.com/SupersonicAds/kafka-snow-white/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SupersonicAds/kafka-snow-white/actions?query=branch%3Amaster)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.supersonic/kafka-snow-white_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.supersonic/kafka-snow-white_2.12)
 
 > Mirror, mirror on the wall, who is the fairest of them all?
 
