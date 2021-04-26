@@ -9,25 +9,23 @@ A Kafka mirroring service based on Akka Streams Kafka. The service can be used t
 
 ## Getting Kafka Snow White
 
-Kafka Snow White is available as executable JAR files in multiple variations (see below), these can be downloaded from Bintray:
-- [kafka-snow-white-file-watcher-app](https://bintray.com/ironsonic/maven/kafka-snow-white-file-watcher-app)
-- [kafka-snow-white-consul-app](https://bintray.com/ironsonic/maven/kafka-snow-white-consul-app)
+Kafka Snow White is available as executable JAR files in multiple variations (see below), these can be downloaded from Maven Central:
+- [kafka-snow-white-file-watcher-app](https://mvnrepository.com/artifact/com.supersonic/kafka-snow-white-file-watcher-app)
+- [kafka-snow-white-consul-app](https://mvnrepository.com/artifact/com.supersonic/kafka-snow-white-consul-app)
 
 Pick the `xxx-assembly.jar` files where `xxx` stands for the app name and version.
 
 The code is also available as a library and can be used via SBT with:
 ```scala
-resolvers += Resolver.jcenterRepo
-
 // If you want to run the service from code
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.5.0"
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.5.0"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.5.1"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.5.1"
 
 // If you want only the basic mirroring functionality with no backing mechanism
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.5.0"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.5.1"
 
 // If you want to create a new backend for mirroring
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.5.0" 
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.5.1" 
 ```
 
 ## Motivation
