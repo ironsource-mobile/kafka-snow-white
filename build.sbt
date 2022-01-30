@@ -110,7 +110,7 @@ def appCommonDependencies = List(
   "com.typesafe.akka" %% "akka-http-spray-json" % akkaHTTPVersion,
   "com.github.fommil" %% "spray-json-shapeless" % "1.4.0")
 
-val consulAkkaStreamVersion = "1.1.1"
+val consulAkkaStreamVersion = "1.1.2"
 
 def consulAppDependencies = List(
   "com.supersonic" %% "consul-akka-stream" % consulAkkaStreamVersion)
