@@ -18,14 +18,14 @@ Pick the `xxx-assembly.jar` files where `xxx` stands for the app name and versio
 The code is also available as a library and can be used via SBT with:
 ```scala
 // If you want to run the service from code
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.5.1"
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.5.1"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-consul-app" % "1.5.2"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-file-watcher" % "1.5.2"
 
 // If you want only the basic mirroring functionality with no backing mechanism
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.5.1"
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-core" % "1.5.2"
 
 // If you want to create a new backend for mirroring
-libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.5.1" 
+libraryDependencies += "com.supersonic" %% "kafka-snow-white-app-common" % "1.5.2" 
 ```
 
 ## Motivation
